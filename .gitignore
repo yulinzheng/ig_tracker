@@ -162,6 +162,8 @@ cython_debug/
 # macOS
 **/.DS_Store
 
-# data
+# local files
 data/followers.html
 data/following.html
+ig_tracker.db
+
