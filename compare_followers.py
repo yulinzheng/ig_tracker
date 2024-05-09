@@ -1,8 +1,36 @@
+import os
+import sqlite3
 from bs4 import BeautifulSoup
-from typing import List
 
 
-def get_user_profiles(file_path:str) -> List[str]:
+def create_sqlite_db(db_name):
+    if not os.path.exists(db_name):
+        try:
+            with sqlite3.connect(db_name) as conn:
+                cursor = conn.cursor()
+                create_tables(cursor)
+                conn.commit()
+            print(f"Database '{db_name}' created successfully.")
+        
+        except sqlite3.Error as e:
+            print(e) 
+    else:
+        print(f"Database '{db_name}' already exists.\nRunning updates...")
+
+def create_tables(cursor):
+    sql_statements = [
+        '''CREATE TABLE followers
+            (username TEXT, date_added DATE)''',
+        '''CREATE TABLE following
+            (username TEXT, date_added DATE)''',
+        '''CREATE INDEX idx_followers_username ON followers (username)''',
+        '''CREATE INDEX idx_following_username ON following (username)''',
+    ]
+    for statement in sql_statements:
+        cursor.execute(statement)
+
+
+def get_user_profiles(file_path):
     try:
         with open(file_path, "r") as file:
             html_content = file.read()
@@ -20,7 +48,7 @@ def get_user_profiles(file_path:str) -> List[str]:
 
 
 class FollowerTracker():
-    def __init__(self) -> None:
+    def __init__(self):
         self.FOLLOWERS = []
         self.FOLLOWING = []
 
@@ -43,16 +71,18 @@ class FollowerTracker():
 
 
 def main():
-    followers = get_user_profiles('data/followers.html')
-    following = get_user_profiles('data/following.html')
-    print(f"You have {len(followers)} followers and {len(following)} following.")
+    create_sqlite_db('ig_tracker.db')
 
-    follower_tracker = FollowerTracker()
-    follower_tracker.FOLLOWERS = followers
-    follower_tracker.FOLLOWING = following
+    # followers = get_user_profiles('data/followers.html')
+    # following = get_user_profiles('data/following.html')
+    # print(f"You have {len(followers)} followers and {len(following)} following.")
 
-    friends = follower_tracker.get_friends()
-    print(f"You have {len(friends)} friends.")
+    # follower_tracker = FollowerTracker()
+    # follower_tracker.FOLLOWERS = followers
+    # follower_tracker.FOLLOWING = following
+
+    # friends = follower_tracker.get_friends()
+    # print(f"You have {len(friends)} friends.")
 
 
 if __name__ == '__main__':
